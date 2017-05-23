@@ -1,8 +1,7 @@
 from Crypto.Cipher import AES
-from Crypto.Cipher.AES import AESCipher
 from Crypto import Random
 from Crypto.PublicKey import RSA
-
+import base64
 import os
 import time
 
@@ -70,7 +69,7 @@ def file_decrypt(key, file):
     return
 
 
-def generate_rsa_keys(filename):
+def rsa_generate(filename, passphrase):
     """
     Generates an RSA key pair default size in 2048 bits
     If a previous file exists same name it overwrites to those files
@@ -78,11 +77,13 @@ def generate_rsa_keys(filename):
     File format will be as for public keys filename_pub.pem, and
     for private keys filename_priv.pem.
     :param filename:
+    :param passphrase in order to export private key encrypted with 3DES
     :return:
     """
     rsa_key = RSA.generate(bits=2048)
     public_exponent = rsa_key.publickey().exportKey("PEM")
-    private_exponent = rsa_key.exportKey("PEM")
+    private_exponent = rsa_key.exportKey(format="PEM", passphrase=passphrase)
+    rsa_key.exportKey()
 
     # write public key
     pubkey_file_name = filename + "_pub.pem"
@@ -97,7 +98,48 @@ def generate_rsa_keys(filename):
     return
 
 
-def text_encrypt(data, key):
-    cipher = AESCipher(key=key)
-    print cipher.encrypt(data)
-    return
+def rsa_encrypt(public_file_name, data):
+    """
+    Encrypt with rsa public key
+    :param public_key_file:
+    :param data: data that will be encrypted
+    :return: byte array that is encrypted in base64 form,
+    in case of error None
+    """
+    public_key = None
+    # read pub key from file
+    with open(name=public_file_name, mode="r") as public_key_file:
+        public_key = public_key_file.read()
+        print("Read " + public_key)
+
+    if public_key is not None:
+        rsa_public_key = RSA.importKey(externKey=public_key)
+        return base64.encodestring(rsa_public_key.encrypt(plaintext=data, K=12)[0])
+    return None
+
+
+def rsa_decrypt(private_key_file_name, cipher_base64, passphrase):
+    """
+    Decrpyt with rsa private key
+    :param private_key_file_name:
+    :param cipher_base64: will be decrypted should be provided in base64 form
+    :param passphrase in order to open encrypted private key
+    :return: plain text will be returned
+    """
+    private_key = None
+    # read pub key from file
+    with open(name=private_key_file_name, mode="r") as private_key_file:
+        cipher_decoded = base64.decodestring(cipher_base64)
+        private_key = private_key_file.read()
+
+    print("Read PrivateKey" + private_key)
+    if private_key is not None:
+        rsa_private_key = RSA.importKey(externKey=private_key, passphrase=passphrase)
+        return rsa_private_key.decrypt(ciphertext=cipher_decoded)
+    return None
+
+
+
+
+
+
