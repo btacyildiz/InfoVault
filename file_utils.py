@@ -22,3 +22,29 @@ class FileUtils:
                 # call the callback with file dir
                 callback(file_dir)
         return
+
+    @staticmethod
+    def read_data_from_file(filename):
+        """
+        Read whole data from the file
+        :param filename:
+        :return: if successfull returns string else None
+        """
+        data = None
+        with open(name=filename,mode='r') as file:
+            data = file.read()
+        return data
+
+    @staticmethod
+    def write_data_to_file(filename, data):
+        """
+        Read whole data from the file
+        :param filename:
+        :param data to write file
+        :return:
+        """
+        with open(name=filename, mode='w') as file:
+            file.write(data)
+        return
+
+

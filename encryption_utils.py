@@ -4,6 +4,7 @@ from Crypto.PublicKey import RSA
 import base64
 import os
 import time
+from file_utils import FileUtils
 
 IV_BLOCK_SIZE = 16
 CHUNK_SIZE = 1024
@@ -87,34 +88,34 @@ def rsa_generate(filename, passphrase):
 
     # write public key
     pubkey_file_name = filename + "_pub.pem"
-    with open(name=pubkey_file_name, mode="w") as pubkey_file:
-        pubkey_file.write(public_exponent)
+
+    FileUtils.write_data_to_file(filename=pubkey_file_name, data=public_exponent)
 
     # write private key
     privkey_file_name = filename + "_priv.pem"
-    with open(name=privkey_file_name, mode="w") as privkey_file:
-        privkey_file.write(private_exponent)
+
+    FileUtils.write_data_to_file(filename=privkey_file_name, data=private_exponent)
+
 
     return
 
 
-def rsa_encrypt(public_file_name, data):
+def rsa_encrypt(public_key_file_name, data):
     """
     Encrypt with rsa public key
-    :param public_key_file:
+    :param public_key_file_name: file name to use to encrypt
     :param data: data that will be encrypted
     :return: byte array that is encrypted in base64 form,
     in case of error None
     """
-    public_key = None
+
     # read pub key from file
-    with open(name=public_file_name, mode="r") as public_key_file:
-        public_key = public_key_file.read()
-        print("Read " + public_key)
+    public_key = FileUtils.read_data_from_file(filename=public_key_file_name)
 
     if public_key is not None:
         rsa_public_key = RSA.importKey(externKey=public_key)
         return base64.encodestring(rsa_public_key.encrypt(plaintext=data, K=12)[0])
+
     return None
 
 
@@ -126,17 +127,59 @@ def rsa_decrypt(private_key_file_name, cipher_base64, passphrase):
     :param passphrase in order to open encrypted private key
     :return: plain text will be returned
     """
-    private_key = None
-    # read pub key from file
-    with open(name=private_key_file_name, mode="r") as private_key_file:
-        cipher_decoded = base64.decodestring(cipher_base64)
-        private_key = private_key_file.read()
+    cipher_decoded = base64.decodestring(cipher_base64)
+
+    private_key = FileUtils.read_data_from_file(filename=private_key_file_name)
 
     print("Read PrivateKey" + private_key)
     if private_key is not None:
         rsa_private_key = RSA.importKey(externKey=private_key, passphrase=passphrase)
         return rsa_private_key.decrypt(ciphertext=cipher_decoded)
     return None
+
+
+def rsa_sign(private_key_file_name, data, passphrase):
+    """
+    Perform signing with rsa private key
+    :param private_key_file_name:
+    :param data:
+    :param passphrase:
+    :return:
+    """
+
+    private_key = FileUtils.read_data_from_file(filename=private_key_file_name)
+
+    if private_key is not None:
+        rsa_private_key = RSA.importKey(externKey=private_key, passphrase=passphrase)
+        # k is a random value does not effect the functionality
+        signature = rsa_private_key.sign(M=data, K=12)[0]
+        return base64.encodestring(str(signature))
+    return None
+
+
+def rsa_verify(public_key_file_name, data, signature):
+    """
+    Perform signing with rsa private key
+    :param public_key_file_name:
+    :param data to validate the signature of
+    :param signature: should be provided in base64 format
+    :return: bool if signing is ok, True, False
+    """
+
+    public_key = FileUtils.read_data_from_file(filename=public_key_file_name)
+
+    signature = long(base64.decodestring(signature))
+
+    if public_key is not None:
+        rsa_public_key = RSA.importKey(externKey=public_key)
+        return rsa_public_key.verify(M=data, signature=(signature,))
+    return False
+
+
+
+
+
+
 
 
 
