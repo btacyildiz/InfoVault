@@ -30,7 +30,6 @@ class FileUtils:
         :param filename:
         :return: if successfull returns string else None
         """
-        data = None
         with open(name=filename,mode='r') as file:
             data = file.read()
         return data
