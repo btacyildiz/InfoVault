@@ -53,16 +53,13 @@ class EncryptionUtils:
         with open(name=file, mode="rb+") as opened_file:
             size_added = 0
 
-            start_time = time.time()
             # read IV from the end of the file
             opened_file.seek(-IV_BLOCK_SIZE, os.SEEK_END)
             IV = opened_file.read(IV_BLOCK_SIZE)
             opened_file.seek(-IV_BLOCK_SIZE, os.SEEK_END)
             opened_file.truncate()
-            opened_file.seek(0) # get back to the start position
+            opened_file.seek(0)  # get back to the starting position
             cipher = AES.new(key, AES.MODE_CFB, IV)
-            elapsed_time = time.time() - start_time
-            print("Time elapsed while getting IV: " + str(elapsed_time))
 
             while True:
                 data = opened_file.read(CHUNK_SIZE)
@@ -134,7 +131,6 @@ class EncryptionUtils:
 
         private_key = FileUtils.read_data_from_file(filename=private_key_file_name)
 
-        print("Read PrivateKey" + private_key)
         if private_key is not None:
             rsa_private_key = RSA.importKey(externKey=private_key, passphrase=passphrase)
             return rsa_private_key.decrypt(ciphertext=cipher_decoded)
@@ -191,17 +187,3 @@ class EncryptionUtils:
         except Exception, e:
             print(str(e))
             return False
-
-
-
-
-
-
-
-
-
-
-
-
-
-

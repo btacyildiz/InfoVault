@@ -1,7 +1,8 @@
 from encryption_utils import EncryptionUtils
-from file_utils import FileUtils
 from FileVault import FileVault
-
+from Crypto import Random
+import base64
+import time
 
 
 def enc_callback(filename):
@@ -28,12 +29,19 @@ def rsa_sign_verify_test():
 
 
 def rsa_encrypt_decrypt_test():
+    symmetric1 = Random.get_random_bytes(32)
 
-    cipher_base64 = EncryptionUtils.rsa_encrypt("test_pub.pem", "test")
+    print("Symmetric 1 : " + symmetric1)
+    encrypted_symmetric_key = \
+        EncryptionUtils.rsa_encrypt(public_key_file_name="test_pub.pem",
+                                    data=symmetric1)
 
-    plain_text = EncryptionUtils.rsa_decrypt(private_key_file_name="test_priv.pem", cipher_base64=cipher_base64, passphrase="123")
-
-    if plain_text == "test":
+    # decrypt the symmetric key
+    symmetric2 = EncryptionUtils.rsa_decrypt(private_key_file_name="test_priv.pem",
+                                             cipher_base64=encrypted_symmetric_key,
+                                             passphrase="123")
+    print("Symmetric 2 : " + symmetric1)
+    if symmetric1 == symmetric2:
         return True
     return False
 
@@ -65,8 +73,20 @@ def main_function():
             print "test"
 
 if __name__ == "__main__":
-    print str(EncryptionUtils.check_rsa_priv_passphase(priv_key_file_name="test_priv.pem",
-                                                       passphrase="13"))
+    """print str(EncryptionUtils.check_rsa_priv_passphase(priv_key_file_name="test_priv.pem",
+                                                       passphrase="13"))"""
+
+    fileVault = FileVault(passphrase="123", keydirectory=".", keyname="test", operation_directory="./FilesToEncrypt")
+    print fileVault.check_the_parameters()
+
+    time1 = time.time()
+    fileVault.encrypt()
+    elapsedTime = (time.time() - time1)*1000
+    print (elapsedTime)
+    fileVault.decrypt()
+
+    #print rsa_encrypt_decrypt_test()
+
     """fileVault = FileVault(dirname="./FilesToEncrypt", keyname="test", keydirectory=".")
     fileVault.encrypt()
     fileVault.decrypt()"""
