@@ -4,7 +4,7 @@ from Crypto.PublicKey import RSA
 import base64
 import os
 import hashlib
-from file_utils import FileUtils
+from FileUtils import FileUtils
 
 IV_BLOCK_SIZE = 16
 CHUNK_SIZE = 1024

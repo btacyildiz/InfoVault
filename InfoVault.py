@@ -1,5 +1,5 @@
-from file_utils import FileUtils
-from encryption_utils import EncryptionUtils
+from FileUtils import FileUtils
+from EncryptionUtils import EncryptionUtils
 from Crypto import Random
 import base64
 import json
@@ -7,7 +7,7 @@ import os.path
 import time
 
 
-class InfoVault:
+class InfoVault():
     def __init__(self, keydirectory, keyname, operation_directory, passphrase):
         """
         :param keydirectory: <keyname>_priv.pem <keyname>_pub.pem

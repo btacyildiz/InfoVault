@@ -2,6 +2,8 @@
 FilesToEncrypt/
 # virtualenv
 FileEncrypt/
+# exclude pem keys
+*.pem
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,7 +1,6 @@
-from encryption_utils import EncryptionUtils
-from FileVault import InfoVault
+from EncryptionUtils import EncryptionUtils
+from InfoVault import InfoVault
 from Crypto import Random
-import time
 import getpass
 import sys
 import os
@@ -93,7 +92,7 @@ def main_function(keydir, keyname, opdir = None):
         choice = raw_input()
         if choice == 'q':
             break
-        if not (1 <= int(choice) <= 3):
+        if not (1 <= int(choice) <= 4):
             print("Wrong input try again")
         else:
             if choice == "1" or choice == "2":
