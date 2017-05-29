@@ -4,9 +4,10 @@ from Crypto import Random
 import base64
 import json
 import os.path
+import time
 
 
-class FileVault:
+class InfoVault:
     def __init__(self, keydirectory, keyname, operation_directory, passphrase):
         """
         :param keydirectory: <keyname>_priv.pem <keyname>_pub.pem
@@ -59,11 +60,20 @@ class FileVault:
         return True
 
     def encrypt_callback(self, filename):
+        print("Encryption of : \n" + filename)
+        time1 = time.time()
         EncryptionUtils.file_encrypt(key=self._symmetrickey, file=filename)
+        elapsed_time = (time.time() - time1) * 1000
+        print ("Elapsed Time: " + str(elapsed_time))
+
         return
 
     def decrypt_callback(self, filename):
+        print("Dencryption of : \n" + filename)
+        time1 = time.time()
         EncryptionUtils.file_decrypt(key=self._symmetrickey, file=filename)
+        elapsed_time = (time.time() - time1) * 1000
+        print ("Elapsed Time: " + str(elapsed_time))
         return
 
     def encrypt(self):
@@ -81,12 +91,12 @@ class FileVault:
         self._symmetrickey = Random.get_random_bytes(key_size)
 
         # encrypt the session key with public key
-        encrypted_symmetric_key = \
+        encrypted_session_key = \
             EncryptionUtils.rsa_encrypt(public_key_file_name=self._pubkeydirectory,
                                         data=self._symmetrickey)
 
         # prepare data for signature
-        data_for_sign = self._operation_directory + encrypted_symmetric_key \
+        data_for_sign = self._operation_directory + encrypted_session_key \
                         + random_nonce \
                         + self._keyname \
 
@@ -100,7 +110,7 @@ class FileVault:
         # generate and write the json
         configuration_json = {
             "operation_directory": self._operation_directory,
-            "encrypted_session_key": encrypted_symmetric_key,
+            "encrypted_session_key": encrypted_session_key,
             "random_nonce": random_nonce,
             "key_name": self._keyname,
             "signature": signature
@@ -108,7 +118,7 @@ class FileVault:
 
         configuration_json_str = json.dumps(configuration_json)
 
-        configuration_file_name = os.path.relpath(self._operation_directory, ".") + ".FileVault"
+        configuration_file_name = os.path.relpath(self._operation_directory, ".") + ".InfoVault"
         FileUtils.write_data_to_file(filename=(self._operation_directory + "/../" + configuration_file_name),
                                      data=configuration_json_str)
 
@@ -124,7 +134,7 @@ class FileVault:
             return
 
         #  findout the configuration file
-        configuration_file_name = os.path.relpath(self._operation_directory, ".") + ".FileVault"
+        configuration_file_name = os.path.relpath(self._operation_directory, ".") + ".InfoVault"
         if not os.path.isfile(path=configuration_file_name):
             print("Configuration file  " + configuration_file_name + " does not exists")
             return
@@ -142,7 +152,7 @@ class FileVault:
             key_name = FileVault_configuration["key_name"]
             signature = FileVault_configuration["signature"]
         except Exception, e:
-            print("Error occurred while processing configuration file" + str(e))
+            print("Error occurred while processing configuration file, aborting..." + str(e))
             return
 
         # construct signature data
@@ -160,7 +170,6 @@ class FileVault:
             print("Signature verification is failed")
             return
 
-
         # decrypt the symmetric key
         self._symmetrickey = EncryptionUtils.rsa_decrypt(private_key_file_name=self._privkeydirectory,
                                                          cipher_base64=encrypted_session_key,
@@ -168,5 +177,8 @@ class FileVault:
 
         # decrypt the files
         FileUtils.walk_in_directory(directory=self._operation_directory, callback=self.decrypt_callback)
+
+        # remove the configuration file
+        os.remove(configuration_file_name)
         print("Decryption is finished")
         return

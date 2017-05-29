@@ -3,7 +3,6 @@ from Crypto import Random
 from Crypto.PublicKey import RSA
 import base64
 import os
-import time
 import hashlib
 from file_utils import FileUtils
 
@@ -18,7 +17,7 @@ class EncryptionUtils:
     @staticmethod
     def file_encrypt(key, file):
         """
-        :param infile: file which should be encrypted
+        :param file: file which should be encrypted
         :param key: AES CFB encryption method will be used
         """
 
@@ -45,8 +44,7 @@ class EncryptionUtils:
     @staticmethod
     def file_decrypt(key, file):
         """
-        :param filename: file which should be decrypted
-        :param outfilename: output file name
+        :param file: file which should be decrypted
         :param key: AES CFB encryption method will be used
         """
 
@@ -73,7 +71,7 @@ class EncryptionUtils:
         return
 
     @staticmethod
-    def rsa_generate(filename, passphrase):
+    def rsa_generate(keypath, keyname, passphrase):
         """
         Generates an RSA key pair default size in 2048 bits
         If a previous file exists same name it overwrites to those files
@@ -90,12 +88,12 @@ class EncryptionUtils:
         rsa_key.exportKey()
 
         # write public key
-        pubkey_file_name = filename + "_pub.pem"
+        pubkey_file_name = os.path.join(keypath, (keyname + "_pub.pem"))
 
         FileUtils.write_data_to_file(filename=pubkey_file_name, data=public_exponent)
 
         # write private key
-        privkey_file_name = filename + "_priv.pem"
+        privkey_file_name = os.path.join(keypath, (keyname + "_priv.pem"))
 
         FileUtils.write_data_to_file(filename=privkey_file_name, data=private_exponent)
         return
